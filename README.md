@@ -2,6 +2,8 @@
 
 JS library for fullscreen mobile web apps. Detects orientation changes, switching between regular and fullscreen views in iOS6, hides the address bar, and fires an event containing a normalized viewport size.
 
+[View demo](http://brianshaler.github.com/Viewporter.js/)
+
 ### Usage
 
 Set a default viewport meta tag. (TODO: automatically generate this element if it doesn't exist)
