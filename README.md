@@ -46,9 +46,11 @@ When the viewport changes size, you can reposition your junk using javascript
 
 Here's what seems to happen on various configurations:
 
-  iPhone 5 + Safari: Works magically, switching between landscape and portrait. In landscape, can switch between fullscreen and non-fullscreen views
-  iPhone ≤ 4 + Safari: Probably works, but I suspect there might be issues in portrait mode. TODO: Test this
-  iPhone + Chrome: Seems to work. Address bar cannot be hidden.
-  Android + HTC Browser: Seems to work and goes all fullscreen and stuff, hiding address bar
-  Android + HTC Sense + Chrome: Chrome bugs the fuck out. May be Sense, may be ICS, may be the 1.5x pixel aspect ratio. Who knows.
-  Desktop + Chrome: Essentially just fires the viewport event using the window's innerWidth and innerHeight. Works as expected.
+* iPhone 5 + Safari: Works magically, switching between landscape and portrait. In landscape, can switch between fullscreen and non-fullscreen views
+* iPhone ≤ 4 + Safari: Probably works, but I suspect there might be issues in portrait mode. TODO: Test this
+* iPhone + Chrome: Seems to work. Address bar cannot be hidden.
+* Android + HTC Browser: Seems to work and goes all fullscreen and stuff, hiding address bar
+* Android + HTC Sense + Chrome: Chrome bugs the fuck out. May be Sense, may be ICS, may be the 1.5x pixel aspect ratio. Who knows.
+* Mac OS X + Chrome/Safari/Firefox: Essentially just fires the viewport event using the window's innerWidth and innerHeight. Works as expected, except BUG: Eventually stops working if you resize the window constantly...
+
+Sometimes <p> font sizes don't match up when switching between orientations on iOS... Weird.
