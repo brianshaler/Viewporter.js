@@ -8,6 +8,8 @@
 <body>
   <div id="page">
     <h1>Viewporter.js</h1>
+    <p>View this on a mobile device! Switch between portrait and landscape modes, and if you're on iOS 6 with an iPhone or iPod, switch in and out of fullscreen view.</p>
+    <p>The box should slowly animate to be near the bottom right corner, and the address bar should auto-hide if the browser supports it. You should not be able to scale the page or scroll in any direction (except "up" to reveal a hidden address bar).</p>
     
     <div id="box">
       <div>I'm a box.<br /><span id="box_location"></span></div>
@@ -24,7 +26,7 @@
 	  document.getElementById("box_location").innerHTML = "moving to: "+box.style.left+" x "+box.style.top;
   });
   // Start up Viewporter
-  viewporter = new Viewporter("page", 2);
+  viewporter = new Viewporter("page");
   </script>
   
 </body>
