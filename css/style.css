@@ -6,8 +6,9 @@ body {
   height: 100%;
 }
 
-body {
+body, p, div {
   font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px;
 }
 
 h1 {
