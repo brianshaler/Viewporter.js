@@ -1,0 +1,31 @@
+<html>
+<head>
+  <title>Viewporter demo</title>
+  <link rel="stylesheet" href="css/style.css" />
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+	<script type="text/javascript" src="viewporter.js"></script>
+</head>
+<body>
+  <div id="page">
+    <h1>Viewporter.js</h1>
+    
+    <div id="box">
+      <div>I'm a box.<br /><span id="box_location"></span></div>
+    </div>
+    <div id="log"></div>
+  </div>
+	<script type="text/javascript">
+	// Reposition box when the size of the viewport changes
+	window.addEventListener("viewportchanged", function (event) {
+	  var box_size = 200;
+	  var box = document.getElementById("box");
+	  box.style.left = event.width - box_size - 10 + "px";
+	  box.style.top = event.height - box_size - 10 + "px";
+	  document.getElementById("box_location").innerHTML = "moving to: "+box.style.left+" x "+box.style.top;
+  });
+  // Start up Viewporter
+  viewporter = new Viewporter("page", 2);
+  </script>
+  
+</body>
+</html>
