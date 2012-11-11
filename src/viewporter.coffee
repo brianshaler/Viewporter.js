@@ -202,6 +202,7 @@ class @Viewporter
       event.initEvent "viewportchanged", true, true
       event.width = @viewportWidth
       event.height = @viewportHeight
+      event.isLandscape = @isLandscape
       window.dispatchEvent event
   
   orientedWidth: () ->
