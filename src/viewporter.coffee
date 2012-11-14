@@ -49,7 +49,6 @@ class @Viewporter
     
     if @params? and typeof @params == "object"
       for prop, val of @params
-        console.log "set #{prop} to #{val}"
         @[prop] = val
     
     @hideAddressBar()

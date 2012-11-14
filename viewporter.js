@@ -64,7 +64,6 @@
         _ref = this.params;
         for (prop in _ref) {
           val = _ref[prop];
-          console.log("set " + prop + " to " + val);
           this[prop] = val;
         }
       }
