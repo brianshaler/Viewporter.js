@@ -4,13 +4,16 @@
 
   this.Viewporter = (function() {
 
-    function Viewporter(element_id, logging_level) {
-      var _this = this;
+    function Viewporter(element_id, params) {
+      var prop, val, _ref,
+        _this = this;
       this.element_id = element_id;
-      this.logging_level = logging_level != null ? logging_level : 0;
+      this.params = params != null ? params : {};
       this.setupViewport = __bind(this.setupViewport, this);
 
       this.resetViewportIfChanged = __bind(this.resetViewportIfChanged, this);
+
+      this.orientationChanged = __bind(this.orientationChanged, this);
 
       this.monitorSize = __bind(this.monitorSize, this);
 
@@ -18,14 +21,10 @@
       if ((this.element_id != null) && (document.getElementById(this.element_id) != null)) {
         this.element = document.getElementById(this.element_id);
       }
+      this.loggingLevel = 0;
       this.isAndroid = navigator.userAgent.match(/Android/i);
       this.isIphone = navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i);
       this.isChrome = navigator.userAgent.match(/Chrome/i) || navigator.userAgent.match(/CriOS/i);
-      if (this.isChrome) {
-        this.trace("I'm chrome!", 2);
-      } else {
-        this.trace("I'm not chrome.. ", 2);
-      }
       this.pixelRatio = 1;
       if (window.devicePixelRatio) {
         this.pixelRatio = window.devicePixelRatio;
@@ -37,6 +36,10 @@
       this.viewportChanged = false;
       this.viewportWidth = 320;
       this.viewportHeight = 480;
+      this.fullWidthLandscape = true;
+      this.fullHeightLandscape = true;
+      this.fullWidthPortrait = true;
+      this.fullHeightPortrait = true;
       if (window.innerWidth < window.innerHeight) {
         this.windowInnerWidth = window.innerWidth / this.pixelRatio;
         this.windowInnerHeight = window.innerHeight / this.pixelRatio;
@@ -45,22 +48,27 @@
         this.windowInnerHeight = window.innerWidth / this.pixelRatio;
       }
       this.resolutionsSeen = [];
-      this.hideAddressBar();
-      window.addEventListener("ondeviceorientation", function(event) {
-        _this.trace("ondeviceorientation", 2);
-        _this.calculateWindowSize();
-        return _this.setupViewport();
-      });
-      window.addEventListener("orientationchange", function(event) {
-        _this.trace("orientationchange", 2);
-        _this.calculateWindowSize();
-        return _this.setupViewport();
-      });
+      window.addEventListener("ondeviceorientation", this.orientationChanged);
+      window.addEventListener("orientationchange", this.orientationChanged);
       window.addEventListener("resize", function(event) {
         _this.trace("resize " + window.innerHeight, 2);
-        return _this.resetViewportIfChanged();
+        if (_this.isIphone || _this.isAndroid) {
+          return _this.resetViewportIfChanged();
+        } else {
+          _this.calculateWindowSize();
+          return _this.setupViewport();
+        }
       });
       this.interval = 300;
+      if ((this.params != null) && typeof this.params === "object") {
+        _ref = this.params;
+        for (prop in _ref) {
+          val = _ref[prop];
+          console.log("set " + prop + " to " + val);
+          this[prop] = val;
+        }
+      }
+      this.hideAddressBar();
       if (this.isIphone) {
         setTimeout(function() {
           return _this.monitorSize();
@@ -78,12 +86,22 @@
       this.trace(navigator.userAgent, 2);
     }
 
-    Viewporter.prototype.monitorSize = function() {
+    Viewporter.prototype.monitorSize = function(event) {
       var _this = this;
       this.resetViewportIfChanged();
       return setTimeout(function() {
         return _this.monitorSize();
       }, this.interval);
+    };
+
+    Viewporter.prototype.orientationChanged = function() {
+      var _ref;
+      if (((_ref = this.element) != null ? _ref.style : void 0) != null) {
+        this.element.style.display = "none";
+      }
+      this.trace("orientationchange", 2);
+      this.calculateWindowSize();
+      return this.setupViewport();
     };
 
     Viewporter.prototype.resetViewportIfChanged = function() {
@@ -174,7 +192,7 @@
     };
 
     Viewporter.prototype.setupViewport = function() {
-      var body, event, h, s, viewport, viewportContent, w, _ref,
+      var body, event, h, s, setHeight, setWidth, viewport, viewportContent, viewportProperties, w, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8,
         _this = this;
       viewport = document.querySelector("meta[name=viewport]");
       this.trace("" + screen.width + "x" + screen.height + " / " + this.viewportWidth + "x" + this.viewportHeight, 2);
@@ -185,19 +203,55 @@
         h = this.viewportHeight + 0;
         w = this.viewportWidth + 0;
       }
-      viewportContent = "width=" + w + ", height=" + h + ", initial-scale=" + s + ", minimum-scale=" + s + ", maximum-scale=" + s + ", user-scalable=no";
+      viewportProperties = [];
+      viewportProperties.push("initial-scale=" + s);
+      viewportProperties.push("minimum-scale=" + s);
+      viewportProperties.push("maximum-scale=" + s);
+      viewportProperties.push("user-scalable=no");
       body = document.getElementsByTagName("body");
-      if ((body != null ? (_ref = body[0]) != null ? _ref.style : void 0 : void 0) != null) {
-        body[0].style.height = this.viewportHeight + "px";
+      setWidth = (this.isLandscape && this.fullWidthLandscape) || (!this.isLandscape && this.fullWidthPortrait);
+      setHeight = (this.isLandscape && this.fullHeightLandscape) || (!this.isLandscape && this.fullHeightPortrait);
+      if (setWidth) {
+        viewportProperties.push("width=" + w);
+        if (((_ref = this.element) != null ? _ref.style : void 0) != null) {
+          this.element.style.width = this.viewportWidth + "px";
+          this.element.style["overflow-x"] = "hidden";
+        }
+        if ((body != null ? (_ref1 = body[0]) != null ? _ref1.style : void 0 : void 0) != null) {
+          body[0].style.width = this.viewportWidth + "px";
+        }
+      } else {
+        if (((_ref2 = this.element) != null ? _ref2.style : void 0) != null) {
+          this.element.style.width = "inherit";
+          this.element.style["overflow-x"] = "auto";
+        }
+        if ((body != null ? (_ref3 = body[0]) != null ? _ref3.style : void 0 : void 0) != null) {
+          body[0].style.width = "";
+        }
       }
-      if (this.isAndroid && this.isChrome && (this.element != null)) {
-        this.element.style.display = "none";
+      if (setHeight) {
+        viewportProperties.push("height=" + h);
+        if (((_ref4 = this.element) != null ? _ref4.style : void 0) != null) {
+          this.element.style.height = this.viewportHeight + "px";
+          this.element.style["overflow-y"] = "hidden";
+        }
+        if ((body != null ? (_ref5 = body[0]) != null ? _ref5.style : void 0 : void 0) != null) {
+          body[0].style.height = this.viewportHeight + "px";
+        }
+      } else {
+        if (((_ref6 = this.element) != null ? _ref6.style : void 0) != null) {
+          this.element.style.height = "inherit";
+          this.element.style["overflow-y"] = "auto";
+        }
+        if ((body != null ? (_ref7 = body[0]) != null ? _ref7.style : void 0 : void 0) != null) {
+          body[0].style.height = "";
+        }
+      }
+      viewportContent = viewportProperties.join(", ");
+      if (((_ref8 = this.element) != null ? _ref8.style : void 0) != null) {
         setTimeout(function() {
           return _this.element.style.display = "block";
-        }, (this.isAndroid && this.isChrome ? 500 : 10));
-      }
-      if (this.element != null) {
-        this.element.style.height = this.viewportHeight + "px";
+        }, 100);
       }
       this.trace(viewportContent, 2);
       if (!this.isAndroid || !this.isChrome) {
@@ -254,11 +308,11 @@
 
     Viewporter.prototype.trace = function(str, level) {
       var log;
-      if (this.logging_level > 0) {
+      if (this.loggingLevel > 0) {
         if ((typeof console !== "undefined" && console !== null ? console.log : void 0) != null) {
           console.log(str);
         }
-        if (level <= this.logging_level) {
+        if (level <= this.loggingLevel) {
           log = document.getElementById("log");
           if (log != null) {
             log.innerHTML = str + "<br />\n" + log.innerHTML;

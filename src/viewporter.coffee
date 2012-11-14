@@ -1,19 +1,15 @@
 class @Viewporter
   
-  constructor: (@element_id, @logging_level = 0) ->
+  constructor: (@element_id, @params = {}) ->
     @element = null
     if @element_id? and document.getElementById(@element_id)?
       @element = document.getElementById(@element_id)
     
+    @loggingLevel = 0
+    
     @isAndroid = navigator.userAgent.match(/Android/i)
     @isIphone = navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)
     @isChrome = navigator.userAgent.match(/Chrome/i) || navigator.userAgent.match(/CriOS/i)
-    
-    if @isChrome
-      @trace "I'm chrome!", 2
-    else
-      @trace "I'm not chrome.. ", 2
-    #@isAndroid = !@isIphone
     
     @pixelRatio = 1
     if window.devicePixelRatio
@@ -24,6 +20,11 @@ class @Viewporter
     @viewportWidth = 320
     @viewportHeight = 480
     
+    @fullWidthLandscape = true
+    @fullHeightLandscape = true
+    @fullWidthPortrait = true
+    @fullHeightPortrait = true
+    
     if window.innerWidth < window.innerHeight
       @windowInnerWidth = window.innerWidth/@pixelRatio
       @windowInnerHeight = window.innerHeight/@pixelRatio
@@ -32,24 +33,26 @@ class @Viewporter
       @windowInnerHeight = window.innerWidth/@pixelRatio
     
     @resolutionsSeen = []
-    @hideAddressBar()
     
-    window.addEventListener "ondeviceorientation", (event) =>
-      @trace "ondeviceorientation", 2
-      @calculateWindowSize()
-      @setupViewport()
-    
-    window.addEventListener "orientationchange", (event) =>
-      @trace "orientationchange", 2
-      @calculateWindowSize()
-      @setupViewport()
+    window.addEventListener "ondeviceorientation", @orientationChanged
+    window.addEventListener "orientationchange", @orientationChanged
     
     window.addEventListener "resize", (event) =>
       @trace "resize " + window.innerHeight, 2
-      @resetViewportIfChanged()
+      if @isIphone or @isAndroid
+        @resetViewportIfChanged()
+      else
+        @calculateWindowSize()
+        @setupViewport()
     
     @interval = 300
     
+    if @params? and typeof @params == "object"
+      for prop, val of @params
+        console.log "set #{prop} to #{val}"
+        @[prop] = val
+    
+    @hideAddressBar()
     if @isIphone
       setTimeout () =>
         @monitorSize()
@@ -67,11 +70,18 @@ class @Viewporter
     
     @trace navigator.userAgent, 2
   
-  monitorSize: () =>
+  monitorSize: (event) =>
     @resetViewportIfChanged()
     setTimeout () =>
       @monitorSize()
     , @interval
+  
+  orientationChanged: () =>
+    if @element?.style?
+      @element.style.display = "none"
+    @trace "orientationchange", 2
+    @calculateWindowSize()
+    @setupViewport()
   
   resetViewportIfChanged: () =>
     #@trace "@resetViewportIfChanged()", 2
@@ -172,20 +182,52 @@ class @Viewporter
       h = @viewportHeight + 0
       w = @viewportWidth + 0
     
-    viewportContent = "width=" + w + ", height=" + h + ", initial-scale=" + s + ", minimum-scale=" + s + ", maximum-scale=" + s + ", user-scalable=no"
+    viewportProperties = []
+    viewportProperties.push "initial-scale=" + s
+    viewportProperties.push "minimum-scale=" + s
+    viewportProperties.push "maximum-scale=" + s
+    viewportProperties.push "user-scalable=no"
     
     body = document.getElementsByTagName "body"
-    if body?[0]?.style?
-      body[0].style.height = @viewportHeight + "px"
     
-    if @isAndroid and @isChrome and @element?
-      @element.style.display = "none"
+    setWidth = (@isLandscape and @fullWidthLandscape) or (!@isLandscape and @fullWidthPortrait)
+    setHeight = (@isLandscape and @fullHeightLandscape) or (!@isLandscape and @fullHeightPortrait)
+    
+    if setWidth
+      viewportProperties.push "width=" + w
+      if @element?.style?
+        @element.style.width = @viewportWidth + "px"
+        @element.style["overflow-x"] = "hidden"
+      if body?[0]?.style?
+        body[0].style.width = @viewportWidth + "px"
+    else
+      if @element?.style?
+        @element.style.width = "inherit"
+        @element.style["overflow-x"] = "auto"
+      if body?[0]?.style?
+        body[0].style.width = ""
+    
+    if setHeight
+      viewportProperties.push "height=" + h
+      if @element?.style?
+        @element.style.height = @viewportHeight + "px"
+        @element.style["overflow-y"] = "hidden"
+      if body?[0]?.style?
+        body[0].style.height = @viewportHeight + "px"
+    else
+      if @element?.style?
+        @element.style.height = "inherit"
+        @element.style["overflow-y"] = "auto"
+      if body?[0]?.style?
+        body[0].style.height = ""
+    
+    viewportContent = viewportProperties.join ", "
+    
+    if @element?.style?
       setTimeout () =>
         @element.style.display = "block"
-      , (if @isAndroid and @isChrome then 500 else 10)
+      , 100
     
-    if @element?
-      @element.style.height = @viewportHeight + "px"
     @trace viewportContent, 2
     
     if !@isAndroid or !@isChrome
@@ -231,10 +273,10 @@ class @Viewporter
     , 100
   
   trace: (str, level) ->
-    if @logging_level > 0
+    if @loggingLevel > 0
       if console?.log?
         console.log str
-      if level <= @logging_level
+      if level <= @loggingLevel
         log = document.getElementById "log"
         if log?
           log.innerHTML = str + "<br />\n" + log.innerHTML
