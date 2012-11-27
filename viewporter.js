@@ -24,6 +24,7 @@
       this.loggingLevel = 0;
       this.isAndroid = navigator.userAgent.match(/Android/i);
       this.isIphone = navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i);
+      this.isIpad = navigator.userAgent.match(/iPad/i);
       this.isChrome = navigator.userAgent.match(/Chrome/i) || navigator.userAgent.match(/CriOS/i);
       this.pixelRatio = 1;
       if (window.devicePixelRatio) {
@@ -55,9 +56,10 @@
       window.addEventListener("orientationchange", this.orientationChanged);
       window.addEventListener("resize", function(event) {
         _this.trace("resize " + window.innerHeight, 2);
-        if (_this.isIphone || _this.isAndroid) {
+        if (_this.isIphone || _this.isAndroid || _this.isIpad) {
           return _this.resetViewportIfChanged();
         } else {
+          _this.trace("not iphone or android, so just resize", 2);
           _this.calculateWindowSize();
           return _this.setupViewport();
         }
@@ -108,9 +110,11 @@
 
     Viewporter.prototype.resetViewportIfChanged = function() {
       var _this = this;
+      this.trace("@resetViewportIfChanged()", 2);
       if (this.isLandscape) {
         this.calculateWindowSize();
         if (this.actualScreenWidth !== this.previousScreenSize.width || this.actualScreenHeight !== this.previousScreenSize.height) {
+          this.trace("RESIZE detected.. " + this.previousScreenSize.height + " => " + this.actualScreenHeight, 2);
           this.setupViewport();
           this.previousScreenSize.width = this.actualScreenWidth;
           this.previousScreenSize.height = this.actualScreenHeight;
@@ -262,11 +266,11 @@
       setTimeout(function() {
         return viewport.setAttribute("content", viewportContent);
       }, 30);
-      setTimeout(this.hideAddressBar, 1);
       if (this.viewportChanged && this.lastViewportWidth === this.viewportWidth && this.lastViewportHeight === this.viewportHeight && this.lastLandscape === this.isLandscape) {
         this.viewportChanged = false;
       }
       if (this.viewportChanged) {
+        setTimeout(this.hideAddressBar, 1);
         event = document.createEvent("Event");
         event.initEvent("viewportchanged", true, true);
         event.width = this.viewportWidth;
@@ -286,7 +290,7 @@
 
     Viewporter.prototype.orientedHeight = function() {
       var h, windowRatio;
-      if (this.isIphone || this.isChrome) {
+      if (this.isIphone || this.isChrome || this.isIpad) {
         windowRatio = window.innerWidth > window.innerHeight ? window.innerWidth / window.innerHeight : window.innerHeight / window.innerWidth;
         h = this.orientedWidth() * (this.isLandscape ? 1 / windowRatio : windowRatio);
       } else {

@@ -9,6 +9,7 @@ class @Viewporter
     
     @isAndroid = navigator.userAgent.match(/Android/i)
     @isIphone = navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)
+    @isIpad = navigator.userAgent.match(/iPad/i)
     @isChrome = navigator.userAgent.match(/Chrome/i) || navigator.userAgent.match(/CriOS/i)
     
     @pixelRatio = 1
@@ -42,9 +43,10 @@ class @Viewporter
     
     window.addEventListener "resize", (event) =>
       @trace "resize " + window.innerHeight, 2
-      if @isIphone or @isAndroid
+      if @isIphone or @isAndroid or @isIpad
         @resetViewportIfChanged()
       else
+        @trace "not iphone or android, so just resize", 2
         @calculateWindowSize()
         @setupViewport()
     
@@ -86,11 +88,11 @@ class @Viewporter
     @setupViewport()
   
   resetViewportIfChanged: () =>
-    #@trace "@resetViewportIfChanged()", 2
+    @trace "@resetViewportIfChanged()", 2
     if @isLandscape
       @calculateWindowSize()
       if @actualScreenWidth != @previousScreenSize.width || @actualScreenHeight != @previousScreenSize.height
-        #@trace "RESIZE detected.. " + @previousScreenSize.height + " => " + @actualScreenHeight, 2
+        @trace "RESIZE detected.. " + @previousScreenSize.height + " => " + @actualScreenHeight, 2
         @setupViewport()
         @previousScreenSize.width = @actualScreenWidth
         @previousScreenSize.height = @actualScreenHeight
@@ -239,12 +241,11 @@ class @Viewporter
       viewport.setAttribute "content", viewportContent
     , 30
     
-    setTimeout @hideAddressBar, 1
-    
     if @viewportChanged and @lastViewportWidth == @viewportWidth and @lastViewportHeight == @viewportHeight and @lastLandscape == @isLandscape
       @viewportChanged = false
     
     if @viewportChanged
+      setTimeout @hideAddressBar, 1
       event = document.createEvent "Event"
       event.initEvent "viewportchanged", true, true
       event.width = @viewportWidth
@@ -259,7 +260,7 @@ class @Viewporter
     w = if @isLandscape then @screenHeight() else @screenWidth()
   
   orientedHeight: () ->
-    if @isIphone or @isChrome
+    if @isIphone or @isChrome or @isIpad
       windowRatio = if window.innerWidth > window.innerHeight then window.innerWidth / window.innerHeight else window.innerHeight / window.innerWidth
       h = @orientedWidth() * (if @isLandscape then 1 / windowRatio else windowRatio)
     else
