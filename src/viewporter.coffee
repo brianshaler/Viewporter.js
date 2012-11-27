@@ -19,6 +19,9 @@ class @Viewporter
     @viewportChanged = false
     @viewportWidth = 320
     @viewportHeight = 480
+    @lastViewportWidth = @viewportWidth
+    @lastViewportHeight = @viewportHeight
+    @lastLandscape = @isLandscape = null
     
     @fullWidthLandscape = true
     @fullHeightLandscape = true
@@ -238,12 +241,18 @@ class @Viewporter
     
     setTimeout @hideAddressBar, 1
     
+    if @viewportChanged and @lastViewportWidth == @viewportWidth and @lastViewportHeight == @viewportHeight and @lastLandscape == @isLandscape
+      @viewportChanged = false
+    
     if @viewportChanged
       event = document.createEvent "Event"
       event.initEvent "viewportchanged", true, true
       event.width = @viewportWidth
       event.height = @viewportHeight
       event.isLandscape = @isLandscape
+      @lastViewportWidth = @viewportWidth
+      @lastViewportHeight = @viewportHeight
+      @lastLandscape = @isLandscape
       window.dispatchEvent event
   
   orientedWidth: () ->

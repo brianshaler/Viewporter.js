@@ -36,6 +36,9 @@
       this.viewportChanged = false;
       this.viewportWidth = 320;
       this.viewportHeight = 480;
+      this.lastViewportWidth = this.viewportWidth;
+      this.lastViewportHeight = this.viewportHeight;
+      this.lastLandscape = this.isLandscape = null;
       this.fullWidthLandscape = true;
       this.fullHeightLandscape = true;
       this.fullWidthPortrait = true;
@@ -260,12 +263,18 @@
         return viewport.setAttribute("content", viewportContent);
       }, 30);
       setTimeout(this.hideAddressBar, 1);
+      if (this.viewportChanged && this.lastViewportWidth === this.viewportWidth && this.lastViewportHeight === this.viewportHeight && this.lastLandscape === this.isLandscape) {
+        this.viewportChanged = false;
+      }
       if (this.viewportChanged) {
         event = document.createEvent("Event");
         event.initEvent("viewportchanged", true, true);
         event.width = this.viewportWidth;
         event.height = this.viewportHeight;
         event.isLandscape = this.isLandscape;
+        this.lastViewportWidth = this.viewportWidth;
+        this.lastViewportHeight = this.viewportHeight;
+        this.lastLandscape = this.isLandscape;
         return window.dispatchEvent(event);
       }
     };
