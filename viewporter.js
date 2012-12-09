@@ -17,10 +17,10 @@
 
       this.monitorSize = __bind(this.monitorSize, this);
 
+      this.init = __bind(this.init, this);
+
+      this.initialized = false;
       this.element = null;
-      if ((this.element_id != null) && (document.getElementById(this.element_id) != null)) {
-        this.element = document.getElementById(this.element_id);
-      }
       this.loggingLevel = 0;
       this.isAndroid = navigator.userAgent.match(/Android/i);
       this.isIphone = navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i);
@@ -44,6 +44,7 @@
       this.fullHeightLandscape = true;
       this.fullWidthPortrait = true;
       this.fullHeightPortrait = true;
+      this.interval = 200;
       if (window.innerWidth < window.innerHeight) {
         this.windowInnerWidth = window.innerWidth / this.pixelRatio;
         this.windowInnerHeight = window.innerHeight / this.pixelRatio;
@@ -64,7 +65,6 @@
           return _this.setupViewport();
         }
       });
-      this.interval = 300;
       if ((this.params != null) && typeof this.params === "object") {
         _ref = this.params;
         for (prop in _ref) {
@@ -72,23 +72,35 @@
           this[prop] = val;
         }
       }
+      window.onload = this.init;
       this.hideAddressBar();
-      if (this.isIphone) {
-        setTimeout(function() {
-          return _this.monitorSize();
-        }, this.interval);
-      }
-      setTimeout(function() {
-        _this.calculateWindowSize();
-        _this.setupViewport();
-        setTimeout(_this.hideAddressBar, 1);
-        return addEventListener("load", function() {
-          setTimeout(this.hideAddressBar, 0);
-          return setTimeout(this.hideAddressBar, 10);
-        });
-      }, 10);
-      this.trace(navigator.userAgent, 2);
+      addEventListener("load", function() {
+        setTimeout(this.hideAddressBar, 0);
+        return setTimeout(this.hideAddressBar, 10);
+      });
+      this.init();
     }
+
+    Viewporter.prototype.init = function() {
+      var _this = this;
+      if ((this.element_id != null) && (document.getElementById(this.element_id) != null)) {
+        this.element = document.getElementById(this.element_id);
+      }
+      if (!(this.initialized || ((this.element_id != null) && !(this.element != null)))) {
+        this.hideAddressBar();
+        if (this.isIphone) {
+          setTimeout(function() {
+            return _this.monitorSize();
+          }, this.interval);
+        }
+        setTimeout(function() {
+          _this.calculateWindowSize();
+          _this.setupViewport();
+          return setTimeout(_this.hideAddressBar, 1);
+        }, 10);
+        return this.initialized = true;
+      }
+    };
 
     Viewporter.prototype.monitorSize = function(event) {
       var _this = this;
@@ -112,12 +124,12 @@
       var _this = this;
       this.trace("@resetViewportIfChanged()", 2);
       if (this.isLandscape) {
-        this.calculateWindowSize();
-        if (this.actualScreenWidth !== this.previousScreenSize.width || this.actualScreenHeight !== this.previousScreenSize.height) {
+        if (window.innerWidth !== this.previousScreenSize.width || window.innerHeight !== this.previousScreenSize.height) {
+          this.calculateWindowSize();
           this.trace("RESIZE detected.. " + this.previousScreenSize.height + " => " + this.actualScreenHeight, 2);
           this.setupViewport();
-          this.previousScreenSize.width = this.actualScreenWidth;
-          this.previousScreenSize.height = this.actualScreenHeight;
+          this.previousScreenSize.width = window.innerWidth;
+          this.previousScreenSize.height = window.innerHeight;
           return setTimeout(function() {
             return _this.setupViewport();
           }, 300);
@@ -202,7 +214,7 @@
         _this = this;
       viewport = document.querySelector("meta[name=viewport]");
       this.trace("" + screen.width + "x" + screen.height + " / " + this.viewportWidth + "x" + this.viewportHeight, 2);
-      h = this.viewportHeight + Math.random() * .1;
+      h = this.viewportHeight - Math.random() * .001;
       w = this.viewportWidth;
       s = this.viewportScale;
       if (this.isAndroid && this.isChrome) {

@@ -1,9 +1,8 @@
 class @Viewporter
   
   constructor: (@element_id, @params = {}) ->
+    @initialized = false
     @element = null
-    if @element_id? and document.getElementById(@element_id)?
-      @element = document.getElementById(@element_id)
     
     @loggingLevel = 0
     
@@ -29,6 +28,8 @@ class @Viewporter
     @fullWidthPortrait = true
     @fullHeightPortrait = true
     
+    @interval = 200
+    
     if window.innerWidth < window.innerHeight
       @windowInnerWidth = window.innerWidth/@pixelRatio
       @windowInnerHeight = window.innerHeight/@pixelRatio
@@ -50,29 +51,37 @@ class @Viewporter
         @calculateWindowSize()
         @setupViewport()
     
-    @interval = 300
-    
     if @params? and typeof @params == "object"
       for prop, val of @params
         @[prop] = val
     
+    window.onload = @init
+    
     @hideAddressBar()
-    if @isIphone
+    addEventListener "load", () ->
+      setTimeout @hideAddressBar, 0
+      setTimeout @hideAddressBar, 10
+    
+    @init()
+  
+  init: =>
+    if @element_id? and document.getElementById(@element_id)?
+      @element = document.getElementById(@element_id)
+    
+    unless @initialized or (@element_id? and !@element?)
+      @hideAddressBar()
+      if @isIphone
+        setTimeout () =>
+          @monitorSize()
+        , @interval
+    
       setTimeout () =>
-        @monitorSize()
-      , @interval
-    
-    setTimeout () =>
-      @calculateWindowSize()
-      @setupViewport()
-      setTimeout @hideAddressBar, 1
-    
-      addEventListener "load", () ->
-        setTimeout @hideAddressBar, 0
-        setTimeout @hideAddressBar, 10
-    , 10
-    
-    @trace navigator.userAgent, 2
+        @calculateWindowSize()
+        @setupViewport()
+        setTimeout @hideAddressBar, 1
+      , 10
+      
+      @initialized = true
   
   monitorSize: (event) =>
     @resetViewportIfChanged()
@@ -90,12 +99,12 @@ class @Viewporter
   resetViewportIfChanged: () =>
     @trace "@resetViewportIfChanged()", 2
     if @isLandscape
-      @calculateWindowSize()
-      if @actualScreenWidth != @previousScreenSize.width || @actualScreenHeight != @previousScreenSize.height
+      if window.innerWidth != @previousScreenSize.width || window.innerHeight != @previousScreenSize.height
+        @calculateWindowSize()
         @trace "RESIZE detected.. " + @previousScreenSize.height + " => " + @actualScreenHeight, 2
         @setupViewport()
-        @previousScreenSize.width = @actualScreenWidth
-        @previousScreenSize.height = @actualScreenHeight
+        @previousScreenSize.width = window.innerWidth
+        @previousScreenSize.height = window.innerHeight
         setTimeout () =>
           @setupViewport()
         , 300
@@ -179,7 +188,7 @@ class @Viewporter
     #@viewportHeight = 3000
     #@trace(@viewportWidth+"x"+@viewportHeight+" @ "+@viewportScale), 2
     @trace "#{screen.width}x#{screen.height} / #{@viewportWidth}x#{@viewportHeight}", 2
-    h = (@viewportHeight + Math.random()*.1)
+    h = (@viewportHeight - Math.random()*.001)
     w = @viewportWidth
     s = @viewportScale
     if @isAndroid and @isChrome
