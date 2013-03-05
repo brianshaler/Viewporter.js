@@ -9,6 +9,10 @@
         _this = this;
       this.element_id = element_id;
       this.params = params != null ? params : {};
+      this.trace = __bind(this.trace, this);
+
+      this.announceChange = __bind(this.announceChange, this);
+
       this.setupViewport = __bind(this.setupViewport, this);
 
       this.resetViewportIfChanged = __bind(this.resetViewportIfChanged, this);
@@ -19,6 +23,7 @@
 
       this.init = __bind(this.init, this);
 
+      window.viewporter = this;
       this.initialized = false;
       this.element = null;
       this.loggingLevel = 0;
@@ -39,7 +44,12 @@
       this.viewportHeight = 480;
       this.lastViewportWidth = this.viewportWidth;
       this.lastViewportHeight = this.viewportHeight;
-      this.lastLandscape = this.isLandscape = null;
+      this.lastLandscape = this.isLandscape = true;
+      this.lastAnnounce = {
+        viewportWidth: -1,
+        viewportHeight: -1,
+        isLandscape: -1
+      };
       this.fullWidthLandscape = true;
       this.fullHeightLandscape = true;
       this.fullWidthPortrait = true;
@@ -72,13 +82,24 @@
           this[prop] = val;
         }
       }
-      window.onload = this.init;
+      window.addEventListener("load", function() {
+        _this.trace("ON LOAD! ", 2);
+        _this.init();
+        _this.lastAnnounce.viewportWidth = -1;
+        return _this.announceChange();
+      });
       this.hideAddressBar();
       addEventListener("load", function() {
         setTimeout(this.hideAddressBar, 0);
         return setTimeout(this.hideAddressBar, 10);
       });
       this.init();
+      this.calculateWindowSize();
+      this.setupViewport();
+      this.announceChange();
+      setTimeout(function() {
+        return _this.init();
+      }, 1);
     }
 
     Viewporter.prototype.init = function() {
@@ -86,7 +107,9 @@
       if ((this.element_id != null) && (document.getElementById(this.element_id) != null)) {
         this.element = document.getElementById(this.element_id);
       }
+      this.trace("Initializing?");
       if (!(this.initialized || ((this.element_id != null) && !(this.element != null)))) {
+        this.trace("INITIALIZING");
         this.hideAddressBar();
         if (this.isIphone) {
           setTimeout(function() {
@@ -98,7 +121,10 @@
           _this.setupViewport();
           return setTimeout(_this.hideAddressBar, 1);
         }, 10);
-        return this.initialized = true;
+        this.initialized = true;
+        this.calculateWindowSize();
+        this.setupViewport();
+        return this.announceChange();
       }
     };
 
@@ -113,23 +139,23 @@
     Viewporter.prototype.orientationChanged = function() {
       var _ref;
       if (((_ref = this.element) != null ? _ref.style : void 0) != null) {
-        this.element.style.display = "none";
+        this.element.style.display = "block";
       }
       this.trace("orientationchange", 2);
       this.calculateWindowSize();
-      return this.setupViewport();
+      this.setupViewport();
+      return this.announceChange;
     };
 
     Viewporter.prototype.resetViewportIfChanged = function() {
       var _this = this;
-      this.trace("@resetViewportIfChanged()", 2);
       if (this.isLandscape) {
-        if (window.innerWidth !== this.previousScreenSize.width || window.innerHeight !== this.previousScreenSize.height) {
-          this.calculateWindowSize();
+        this.calculateWindowSize();
+        if (this.actualScreenWidth !== this.previousScreenSize.width || this.actualScreenHeight !== this.previousScreenSize.height) {
           this.trace("RESIZE detected.. " + this.previousScreenSize.height + " => " + this.actualScreenHeight, 2);
           this.setupViewport();
-          this.previousScreenSize.width = window.innerWidth;
-          this.previousScreenSize.height = window.innerHeight;
+          this.previousScreenSize.width = this.actualScreenWidth;
+          this.previousScreenSize.height = this.actualScreenHeight;
           return setTimeout(function() {
             return _this.setupViewport();
           }, 300);
@@ -143,14 +169,13 @@
       this.viewportHeight = 480;
       this.viewportScale = 1;
       this.isLandscape = true;
-      if (typeof window.orientation !== "undefined") {
+      if (window.orientation != null) {
         this.isLandscape = Math.abs(window.orientation) === 90 ? true : false;
       } else {
         this.isLandscape = window.innerWidth > window.innerHeight;
       }
       this.actualScreenWidth = this.orientedWidth();
       this.actualScreenHeight = this.orientedHeight();
-      window.innerHeight;
       sw = screen.width / this.pixelRatio;
       sh = screen.height / this.pixelRatio;
       if (sw > sh) {
@@ -205,18 +230,21 @@
         this.viewportChanged = true;
       }
       this.viewportWidth = this.actualScreenWidth;
-      this.viewportHeight = this.actualScreenHeight;
+      this.viewportHeight = this.actualScreenHeight + 1;
       return this.viewportScale = this.actualScreenWidth / this.viewportWidth;
     };
 
     Viewporter.prototype.setupViewport = function() {
-      var body, event, h, s, setHeight, setWidth, viewport, viewportContent, viewportProperties, w, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8,
+      var body, className, classString, classes, h, newClasses, s, setHeight, setWidth, viewport, viewportContent, viewportProperties, w, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8,
         _this = this;
+      if (!this.initialized && this.element) {
+        this.init();
+      }
       viewport = document.querySelector("meta[name=viewport]");
       this.trace("" + screen.width + "x" + screen.height + " / " + this.viewportWidth + "x" + this.viewportHeight, 2);
-      h = this.viewportHeight - Math.random() * .001;
+      h = this.viewportHeight - Math.random() * .0001;
       w = this.viewportWidth;
-      s = this.viewportScale;
+      s = this.viewportScale - Math.random() * .00001;
       if (this.isAndroid && this.isChrome) {
         h = this.viewportHeight + 0;
         w = this.viewportWidth + 0;
@@ -240,7 +268,7 @@
         }
       } else {
         if (((_ref2 = this.element) != null ? _ref2.style : void 0) != null) {
-          this.element.style.width = "inherit";
+          this.element.style.width = "";
           this.element.style["overflow-x"] = "auto";
         }
         if ((body != null ? (_ref3 = body[0]) != null ? _ref3.style : void 0 : void 0) != null) {
@@ -258,11 +286,11 @@
         }
       } else {
         if (((_ref6 = this.element) != null ? _ref6.style : void 0) != null) {
-          this.element.style.height = "inherit";
+          this.element.style.height = "";
           this.element.style["overflow-y"] = "auto";
         }
         if ((body != null ? (_ref7 = body[0]) != null ? _ref7.style : void 0 : void 0) != null) {
-          body[0].style.height = "";
+          body[0].style.height = "inherit";
         }
       }
       viewportContent = viewportProperties.join(", ");
@@ -271,18 +299,47 @@
           return _this.element.style.display = "block";
         }, 100);
       }
-      this.trace(viewportContent, 2);
+      if ((body != null ? body.getAttribute : void 0) != null) {
+        classString = body.getAttribute("class") || "";
+        classes = classString.split(" ");
+        newClasses = [];
+        for (_i = 0, _len = classes.length; _i < _len; _i++) {
+          className = classes[_i];
+          if (className !== "portrait-mode" && className !== "landscape-mode") {
+            newClasses.push(className);
+          }
+        }
+        if (this.isLandscape) {
+          newClasses.push("landscape-mode");
+        } else {
+          newClasses.push("portrait-mode");
+        }
+        body.setAttribute("class", newClasses.join(" "));
+      }
       if (!this.isAndroid || !this.isChrome) {
-        viewport.setAttribute("content", "width = device-width, height = device-height, initial-scale = 1, minimum-scale = 1, maximum-scale = 1, user-scalable = no");
+        if (!this.isIphone) {
+          viewport.setAttribute("content", "width = device-width, height = device-height, initial-scale = 1, minimum-scale = 1, maximum-scale = 1, user-scalable = no");
+        }
       }
       setTimeout(function() {
         return viewport.setAttribute("content", viewportContent);
-      }, 30);
+      }, 10);
       if (this.viewportChanged && this.lastViewportWidth === this.viewportWidth && this.lastViewportHeight === this.viewportHeight && this.lastLandscape === this.isLandscape) {
         this.viewportChanged = false;
       }
       if (this.viewportChanged) {
         setTimeout(this.hideAddressBar, 1);
+        return this.announceChange();
+      }
+    };
+
+    Viewporter.prototype.announceChange = function() {
+      var event;
+      this.trace("announceChange:", 2);
+      if (1 === 2 && this.lastAnnounce.viewportWidth === this.viewportWidth && this.lastAnnounce.viewportHeight === this.viewportHeight && this.lastAnnounce.isLandscape === this.isLandscape) {
+        return this.trace("NO REPEAT", 2);
+      } else {
+        this.trace("now: " + this.viewportWidth + "x" + this.viewportHeight + " / " + this.isLandscape, 2);
         event = document.createEvent("Event");
         event.initEvent("viewportchanged", true, true);
         event.width = this.viewportWidth;
@@ -291,8 +348,25 @@
         this.lastViewportWidth = this.viewportWidth;
         this.lastViewportHeight = this.viewportHeight;
         this.lastLandscape = this.isLandscape;
-        return window.dispatchEvent(event);
+        window.dispatchEvent(event);
+        return this.lastAnnounce = {
+          viewportWidth: this.viewportWidth,
+          viewportHeight: this.viewportHeight,
+          isLandscape: this.isLandscape
+        };
       }
+    };
+
+    Viewporter.prototype.option = function(key, val) {
+      var sizeRestrictions;
+      sizeRestrictions = ["fullWidthLandscape", "fullHeightLandscape", "fullWidthPortrait", "fullHeightPortrait"];
+      if (sizeRestrictions.indexOf(key > -1)) {
+        this[key] = val === true ? true : false;
+      }
+      this.lastViewportWidth = 0;
+      this.lastViewportHeight = 0;
+      this.viewportChanged = true;
+      return this.setupViewport();
     };
 
     Viewporter.prototype.orientedWidth = function() {
@@ -313,13 +387,13 @@
 
     Viewporter.prototype.screenWidth = function() {
       var div, sw;
-      div = this.isAndroid ? 1 / this.pixelRatio : 1;
+      div = 1;
       return sw = screen.width < screen.height ? screen.width * div : screen.height * div;
     };
 
     Viewporter.prototype.screenHeight = function() {
       var div, sh;
-      div = this.isAndroid ? 1 / this.pixelRatio : 1;
+      div = 1;
       return sh = screen.width > screen.height ? screen.width * div : screen.height * div;
     };
 
@@ -331,20 +405,32 @@
     };
 
     Viewporter.prototype.trace = function(str, level) {
-      var log;
+      var log, _results;
+      if (!this.backlog) {
+        this.backlog = [];
+      }
+      log = document.getElementById("log");
       if (this.loggingLevel > 0) {
         if ((typeof console !== "undefined" && console !== null ? console.log : void 0) != null) {
           console.log(str);
         }
         if (level <= this.loggingLevel) {
-          log = document.getElementById("log");
           if (log != null) {
             log.innerHTML = str + "<br />\n" + log.innerHTML;
             if (log.innerHTML.length > 2000) {
-              return log.innerHTML = log.innerHTML.substring(0, 2000);
+              log.innerHTML = log.innerHTML.substring(0, 2000);
             }
           }
         }
+      }
+      if ((log != null ? log.innerHTML : void 0) != null) {
+        _results = [];
+        while (this.backlog.length > 0) {
+          _results.push(this.trace(this.backlog.shift(), level));
+        }
+        return _results;
+      } else {
+        return this.backlog.push(str);
       }
     };
 
