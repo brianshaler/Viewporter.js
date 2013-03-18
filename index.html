@@ -17,6 +17,7 @@
       window.devicePixelRatio: <span id="window_devicePixelRatio">...</span><br />
       viewporter.orientedWidth(): <span id="oriented_width">...</span><br />
       viewporter.orientedHeight(): <span id="oriented_height">...</span><br />
+      viewporter.isLandscape: <span id="islandscape">...</span><br />
     </p>
     <p>View this on a mobile device! Switch between portrait and landscape modes, and if you're on iOS 6 with an iPhone or iPod, switch in and out of fullscreen view.</p>
     <p>The box should slowly animate to be near the bottom right corner, and the address bar should auto-hide if the browser supports it. You should not be able to scale the page or scroll in any direction (except "up" to reveal a hidden address bar).</p>
@@ -42,6 +43,7 @@
     document.getElementById("oriented_width").innerHTML = window.viewporter.orientedWidth()+ "px";
     document.getElementById("oriented_height").innerHTML = window.viewporter.orientedHeight()+ "px";
     document.getElementById("window_devicePixelRatio").innerHTML = window.devicePixelRatio;
+    document.getElementById("islandscape").innerHTML = window.viewporter.isLandscape ? "true" : "false";
   });
   // Start up Viewporter
   viewporter = new Viewporter("page");

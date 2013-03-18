@@ -46,6 +46,7 @@ class @Viewporter
     
     window.addEventListener "ondeviceorientation", @orientationChanged
     window.addEventListener "orientationchange", @orientationChanged
+    window.addEventListener "visibilitychange", @orientationChanged
     
     window.addEventListener "resize", (event) =>
       @trace "resize " + window.innerHeight, 2
@@ -119,7 +120,7 @@ class @Viewporter
     @trace "orientationchange", 2
     @calculateWindowSize()
     @setupViewport()
-    @announceChange
+    @announceChange()
   
   resetViewportIfChanged: () =>
     if @isLandscape

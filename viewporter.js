@@ -72,6 +72,7 @@
       this.resolutionsSeen = [];
       window.addEventListener("ondeviceorientation", this.orientationChanged);
       window.addEventListener("orientationchange", this.orientationChanged);
+      window.addEventListener("visibilitychange", this.orientationChanged);
       window.addEventListener("resize", function(event) {
         _this.trace("resize " + window.innerHeight, 2);
         if (_this.isIphone || _this.isAndroid || _this.isIpad) {
@@ -155,7 +156,7 @@
       this.trace("orientationchange", 2);
       this.calculateWindowSize();
       this.setupViewport();
-      return this.announceChange;
+      return this.announceChange();
     };
 
     Viewporter.prototype.resetViewportIfChanged = function() {
