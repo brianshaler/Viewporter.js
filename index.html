@@ -8,6 +8,16 @@
 <body>
   <div id="page">
     <h1>Viewporter.js</h1>
+    <p>
+      Debug info:<br />
+      screen.width: <span id="screen_width">...</span><br />
+      screen.height: <span id="screen_height">...</span><br />
+      window.innerWidth: <span id="window_width">...</span><br />
+      window.innerHeight: <span id="window_height">...</span><br />
+      window.devicePixelRatio: <span id="window_devicePixelRatio">...</span><br />
+      viewporter.orientedWidth(): <span id="oriented_width">...</span><br />
+      viewporter.orientedHeight(): <span id="oriented_height">...</span><br />
+    </p>
     <p>View this on a mobile device! Switch between portrait and landscape modes, and if you're on iOS 6 with an iPhone or iPod, switch in and out of fullscreen view.</p>
     <p>The box should slowly animate to be near the bottom right corner, and the address bar should auto-hide if the browser supports it. You should not be able to scale the page or scroll in any direction (except "up" to reveal a hidden address bar).</p>
     
@@ -24,6 +34,14 @@
 	  box.style.left = event.width - box_size - 10 + "px";
 	  box.style.top = event.height - box_size - 10 + "px";
 	  document.getElementById("box_location").innerHTML = "moving to: "+box.style.left+" x "+box.style.top;
+	  
+    document.getElementById("screen_width").innerHTML = screen.width + "px";
+    document.getElementById("screen_height").innerHTML = screen.height + "px";
+    document.getElementById("window_width").innerHTML = window.outerWidth + "px";
+    document.getElementById("window_height").innerHTML = window.outerHeight + "px";
+    document.getElementById("oriented_width").innerHTML = window.viewporter.orientedWidth()+ "px";
+    document.getElementById("oriented_height").innerHTML = window.viewporter.orientedHeight()+ "px";
+    document.getElementById("window_devicePixelRatio").innerHTML = window.devicePixelRatio;
   });
   // Start up Viewporter
   viewporter = new Viewporter("page");
