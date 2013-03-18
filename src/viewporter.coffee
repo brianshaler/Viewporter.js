@@ -67,9 +67,13 @@ class @Viewporter
       @announceChange()
     
     @hideAddressBar()
-    addEventListener "load", () ->
-      setTimeout @hideAddressBar, 0
-      setTimeout @hideAddressBar, 10
+    window.addEventListener "load", () =>
+      setTimeout =>
+        @hideAddressBar()
+      , 0
+      setTimeout =>
+        @hideAddressBar()
+      , 10
     
     @init()
     @calculateWindowSize()
@@ -327,6 +331,9 @@ class @Viewporter
   
   orientedWidth: () ->
     w = if @isLandscape then @screenHeight() else @screenWidth()
+    if Math.abs(window.innerWidth / w - 1) > Math.abs(window.innerWidth / (w/@pixelRatio) - 1)
+      w /= @pixelRatio
+    Math.round w
   
   orientedHeight: () ->
     if @isIphone or @isChrome or @isIpad
@@ -334,17 +341,19 @@ class @Viewporter
       h = @orientedWidth() * (if @isLandscape then 1 / windowRatio else windowRatio)
     else
       h = if @isLandscape then @screenWidth() else @screenHeight()
+    if Math.abs(window.innerHeight / h - 1) > Math.abs(window.innerHeight / (h/@pixelRatio) - 1)
+      #alert "#{h} / #{@pixelRatio}"
+      h /= @pixelRatio
+    #else
+    #  alert "no pixelRatio adjustment necessary\n#{Math.abs window.innerHeight / h - 1} < #{Math.abs window.innerHeight / (h/@pixelRatio) - 1}"
+    #alert "Math.abs #{window.innerHeight / h} - 1 > Math.abs #{window.innerHeight / (h/@pixelRatio)} - 1"
     Math.round h
   
   screenWidth: () ->
-    #div = if @isAndroid then 1 / @pixelRatio else 1
-    div = 1
-    sw = if screen.width < screen.height then screen.width * div else screen.height * div
+    sw = if screen.width < screen.height then screen.width else screen.height
   
   screenHeight: () ->
-    #div = if @isAndroid then 1 / @pixelRatio else 1
-    div = 1
-    sh = if screen.width > screen.height then screen.width * div else screen.height * div
+    sh = if screen.width < screen.height then screen.height else screen.width
   
   hideAddressBar: () ->
     window.scrollTo 0, 0
