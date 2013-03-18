@@ -145,8 +145,8 @@ class @Viewporter
     else
       @isLandscape = window.innerWidth > window.innerHeight
     
-    @actualScreenWidth = @orientedWidth()
-    @actualScreenHeight = @orientedHeight()
+    @actualScreenWidth = @orientedWidth()/@screenRatio()
+    @actualScreenHeight = @orientedHeight()/@screenRatio()
     
     #@trace "@oriented : "+@orientedWidth()+"x"+@orientedHeight()+" @ "+@pixelRatio, 2
     #@trace "window.inner : "+window.innerWidth+"x"+window.innerHeight, 2
@@ -329,10 +329,16 @@ class @Viewporter
     @viewportChanged = true
     @setupViewport()
   
+  screenRatio: () ->
+    ratio = 1
+    if @pixelRatio > 1
+      w = @orientedWidth()
+      if Math.abs(window.innerWidth / w - 1) > Math.abs(window.innerWidth / (w/@pixelRatio) - 1)
+        ratio = @pixelRatio
+    ratio
+  
   orientedWidth: () ->
     w = if @isLandscape then @screenHeight() else @screenWidth()
-    if Math.abs(window.innerWidth / w - 1) > Math.abs(window.innerWidth / (w/@pixelRatio) - 1)
-      w /= @pixelRatio
     Math.round w
   
   orientedHeight: () ->
@@ -341,12 +347,6 @@ class @Viewporter
       h = @orientedWidth() * (if @isLandscape then 1 / windowRatio else windowRatio)
     else
       h = if @isLandscape then @screenWidth() else @screenHeight()
-    if Math.abs(window.innerHeight / h - 1) > Math.abs(window.innerHeight / (h/@pixelRatio) - 1)
-      #alert "#{h} / #{@pixelRatio}"
-      h /= @pixelRatio
-    #else
-    #  alert "no pixelRatio adjustment necessary\n#{Math.abs window.innerHeight / h - 1} < #{Math.abs window.innerHeight / (h/@pixelRatio) - 1}"
-    #alert "Math.abs #{window.innerHeight / h} - 1 > Math.abs #{window.innerHeight / (h/@pixelRatio)} - 1"
     Math.round h
   
   screenWidth: () ->

@@ -185,8 +185,8 @@
       } else {
         this.isLandscape = window.innerWidth > window.innerHeight;
       }
-      this.actualScreenWidth = this.orientedWidth();
-      this.actualScreenHeight = this.orientedHeight();
+      this.actualScreenWidth = this.orientedWidth() / this.screenRatio();
+      this.actualScreenHeight = this.orientedHeight() / this.screenRatio();
       sw = screen.width / this.pixelRatio;
       sh = screen.height / this.pixelRatio;
       if (sw > sh) {
@@ -380,12 +380,21 @@
       return this.setupViewport();
     };
 
+    Viewporter.prototype.screenRatio = function() {
+      var ratio, w;
+      ratio = 1;
+      if (this.pixelRatio > 1) {
+        w = this.orientedWidth();
+        if (Math.abs(window.innerWidth / w - 1) > Math.abs(window.innerWidth / (w / this.pixelRatio) - 1)) {
+          ratio = this.pixelRatio;
+        }
+      }
+      return ratio;
+    };
+
     Viewporter.prototype.orientedWidth = function() {
       var w;
       w = this.isLandscape ? this.screenHeight() : this.screenWidth();
-      if (Math.abs(window.innerWidth / w - 1) > Math.abs(window.innerWidth / (w / this.pixelRatio) - 1)) {
-        w /= this.pixelRatio;
-      }
       return Math.round(w);
     };
 
@@ -396,9 +405,6 @@
         h = this.orientedWidth() * (this.isLandscape ? 1 / windowRatio : windowRatio);
       } else {
         h = this.isLandscape ? this.screenWidth() : this.screenHeight();
-      }
-      if (Math.abs(window.innerHeight / h - 1) > Math.abs(window.innerHeight / (h / this.pixelRatio) - 1)) {
-        h /= this.pixelRatio;
       }
       return Math.round(h);
     };
