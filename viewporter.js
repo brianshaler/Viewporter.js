@@ -186,14 +186,12 @@
       } else {
         this.isLandscape = window.innerWidth > window.innerHeight;
       }
-      this.actualScreenWidth = this.orientedWidth() / this.screenRatio();
-      this.actualScreenHeight = this.orientedHeight() / this.screenRatio();
-      sw = screen.width / this.pixelRatio;
-      sh = screen.height / this.pixelRatio;
-      if (sw > sh) {
-        sw = sh;
-        sh = screen.width / this.pixelRatio;
-      }
+      this.actualScreenWidth = this.orientedWidth();
+      this.actualScreenHeight = this.orientedHeight();
+      this.trace("window.inner : " + window.innerWidth + "x" + window.innerHeight, 2);
+      this.trace("'actual': " + this.actualScreenWidth + "x" + this.actualScreenHeight + " @ " + (this.screenRatio()), 2);
+      sw = this.screenWidth();
+      sh = this.screenHeight();
       statusBarHeight = 10;
       navBarHeight = 44;
       addressBarHeight = 60;
@@ -328,6 +326,7 @@
         }
         body.setAttribute("class", newClasses.join(" "));
       }
+      this.trace(viewportContent, 2);
       if (!this.isAndroid || !this.isChrome) {
         if (!this.isIphone) {
           viewport.setAttribute("content", "width = device-width, height = device-height, initial-scale = 1, minimum-scale = 1, maximum-scale = 1, user-scalable = no");
@@ -382,14 +381,18 @@
     };
 
     Viewporter.prototype.screenRatio = function() {
-      var ratio, w;
+      var ratio, sh, sw, wh, ww;
       ratio = 1;
       if (this.pixelRatio > 1) {
-        w = this.orientedWidth();
-        if (Math.abs(window.innerWidth / w - 1) > Math.abs(window.innerWidth / (w / this.pixelRatio) - 1)) {
+        sw = screen.width;
+        sh = screen.height;
+        ww = window.innerWidth;
+        wh = window.innerHeight;
+        if (ww * this.pixelRatio === sw || wh * this.pixelRatio === sw || ww * this.pixelRatio === sh || wh * this.pixelRatio === sh) {
           ratio = this.pixelRatio;
         }
       }
+      this.trace("" + ratio + " => " + this.pixelRatio + " " + sw + " / " + window.innerWidth, 2);
       return ratio;
     };
 
@@ -412,12 +415,14 @@
 
     Viewporter.prototype.screenWidth = function() {
       var sw;
-      return sw = screen.width < screen.height ? screen.width : screen.height;
+      sw = screen.width < screen.height ? screen.width : screen.height;
+      return sw / this.screenRatio();
     };
 
     Viewporter.prototype.screenHeight = function() {
       var sh;
-      return sh = screen.width < screen.height ? screen.height : screen.width;
+      sh = screen.width < screen.height ? screen.height : screen.width;
+      return sh / this.screenRatio();
     };
 
     Viewporter.prototype.hideAddressBar = function() {

@@ -146,17 +146,14 @@ class @Viewporter
     else
       @isLandscape = window.innerWidth > window.innerHeight
     
-    @actualScreenWidth = @orientedWidth()/@screenRatio()
-    @actualScreenHeight = @orientedHeight()/@screenRatio()
+    @actualScreenWidth = @orientedWidth()
+    @actualScreenHeight = @orientedHeight()
     
     #@trace "@oriented : "+@orientedWidth()+"x"+@orientedHeight()+" @ "+@pixelRatio, 2
     #@trace "window.inner : "+window.innerWidth+"x"+window.innerHeight, 2
     
-    sw = screen.width/@pixelRatio
-    sh = screen.height/@pixelRatio
-    if sw > sh
-      sw = sh
-      sh = screen.width/@pixelRatio
+    sw = @screenWidth()
+    sh = @screenHeight()
     
     statusBarHeight = 10
     navBarHeight = 44
@@ -333,8 +330,11 @@ class @Viewporter
   screenRatio: () ->
     ratio = 1
     if @pixelRatio > 1
-      w = @orientedWidth()
-      if Math.abs(window.innerWidth / w - 1) > Math.abs(window.innerWidth / (w/@pixelRatio) - 1)
+      sw = screen.width
+      sh = screen.height
+      ww = window.innerWidth
+      wh = window.innerHeight
+      if ww * @pixelRatio == sw or wh * @pixelRatio == sw or ww * @pixelRatio == sh or wh * @pixelRatio == sh
         ratio = @pixelRatio
     ratio
   
@@ -352,9 +352,11 @@ class @Viewporter
   
   screenWidth: () ->
     sw = if screen.width < screen.height then screen.width else screen.height
+    sw/@screenRatio()
   
   screenHeight: () ->
     sh = if screen.width < screen.height then screen.height else screen.width
+    sh/@screenRatio()
   
   hideAddressBar: () ->
     window.scrollTo 0, 0
