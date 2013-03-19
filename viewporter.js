@@ -188,8 +188,6 @@
       }
       this.actualScreenWidth = this.orientedWidth();
       this.actualScreenHeight = this.orientedHeight();
-      this.trace("window.inner : " + window.innerWidth + "x" + window.innerHeight, 2);
-      this.trace("'actual': " + this.actualScreenWidth + "x" + this.actualScreenHeight + " @ " + (this.screenRatio()), 2);
       sw = this.screenWidth();
       sh = this.screenHeight();
       statusBarHeight = 10;
@@ -326,7 +324,6 @@
         }
         body.setAttribute("class", newClasses.join(" "));
       }
-      this.trace(viewportContent, 2);
       if (!this.isAndroid || !this.isChrome) {
         if (!this.isIphone) {
           viewport.setAttribute("content", "width = device-width, height = device-height, initial-scale = 1, minimum-scale = 1, maximum-scale = 1, user-scalable = no");
@@ -392,7 +389,6 @@
           ratio = this.pixelRatio;
         }
       }
-      this.trace("" + ratio + " => " + this.pixelRatio + " " + sw + " / " + window.innerWidth, 2);
       return ratio;
     };
 
